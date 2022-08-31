@@ -121,7 +121,16 @@ public class CaseRowMapper implements RowMapper<ModelCase> {
         modelCase.setState(rs.getString("State")==null?"":rs.getString("State"));
         modelCase.setZip(rs.getString("Zip")==null?"":rs.getString("Zip"));
 
-        modelCase.setStatus(rs.getString("Status")==null?"":rs.getString("Status"));
+        String caseStatus = rs.getString("Status");
+        String caseStatusDisplay = "";
+        if (caseStatus != null && !caseStatus.isBlank()) {
+            if (caseStatus.contains("ERROR") || caseStatus.contains("STOPPED") || caseStatus.contains("TIMED")) {
+                caseStatusDisplay = "RETRIVAL ERROR";
+            } else {
+                caseStatusDisplay = caseStatus;
+            }
+        }
+        modelCase.setStatus(caseStatusDisplay);
 
         return modelCase;
     }
