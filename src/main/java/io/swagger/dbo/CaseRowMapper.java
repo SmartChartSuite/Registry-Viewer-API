@@ -124,8 +124,10 @@ public class CaseRowMapper implements RowMapper<ModelCase> {
         String caseStatus = rs.getString("Status");
         String caseStatusDisplay = "";
         if (caseStatus != null && !caseStatus.isBlank()) {
-            if (caseStatus.contains("ERROR") || caseStatus.contains("STOPPED") || caseStatus.contains("TIMED")) {
+            if (caseStatus.contains("ERROR") || caseStatus.contains("STOPPED")) {
                 caseStatusDisplay = "RETRIEVAL ERROR";
+            } else if (caseStatus.contains("TIMED")) {
+                caseStatusDisplay = "RETRIEVAL TIMED OUT";
             } else {
                 caseStatusDisplay = caseStatus;
             }
