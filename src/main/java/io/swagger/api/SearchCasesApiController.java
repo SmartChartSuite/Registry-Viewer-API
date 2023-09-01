@@ -50,7 +50,7 @@ public class SearchCasesApiController implements SearchCasesApi {
         
         String sqlSelectFrom = "SELECT"
             + " ci.case_info_id AS CaseId,"
-            + " ci.created AS InitialRecordDate,"
+            + " ci.created_datetime AS InitialRecordDate,"
             + " fp.family_name AS LastName,"
             + " fp.given1_name AS FirstName1,"
             + " fp.given2_name AS FirstName2,"
