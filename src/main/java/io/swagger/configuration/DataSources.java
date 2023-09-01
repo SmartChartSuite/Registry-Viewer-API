@@ -24,7 +24,7 @@ public class DataSources {
     }
 
     @Bean(name = "viewerDataSource")
-    @ConfigurationProperties(prefix="spring.datasource.viewer")
+    @ConfigurationProperties(prefix="spring.datasource.registry")
     public DataSource viewerDataSource(){
         return DataSourceBuilder.create().build();
     }

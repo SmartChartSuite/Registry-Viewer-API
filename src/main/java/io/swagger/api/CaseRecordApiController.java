@@ -5,6 +5,7 @@ import io.swagger.dbo.CaseDataRowMapper;
 import io.swagger.dbo.DetailsRowMapper;
 import io.swagger.dbo.FactRelationshipRowMapper;
 import io.swagger.dbo.RegistryCaseInfoRowMapper;
+import io.swagger.dbo.Util;
 import io.swagger.dbo.ViewerAnnotationRowMapper;
 import io.swagger.dbo.ViewerFlagRowMapper;
 import io.swagger.model.Annotation;
@@ -80,17 +81,20 @@ public class CaseRecordApiController implements CaseRecordApi {
         boolean created = false;
         boolean processed = false;
 
+        String dataSchemaName = Util.getDefaultDataSchema();
+        String viewerSchemaName = Util.getDefaultViewerSchema();
+
         String flag = body.getFlag();
         if (!"Unknown".equals(flag) && caseId != null && contentId != null) {
-            sql = "SELECT * FROM flag WHERE content_id = " + contentId + " AND case_id = " + caseId;
+            sql = "SELECT * FROM " + viewerSchemaName + ".flag WHERE content_id = " + contentId + " AND case_id = " + caseId;
             List<ViewerFlag> viewerFlags = viewerJdbcTemplate.query(sql, new ViewerFlagRowMapper());
             if (viewerFlags.size() > 0) {
                 // we update flag. 
-                sql = "UPDATE flag SET flag = '" + flag + "'"
+                sql = "UPDATE " + viewerSchemaName + ".flag SET flag = '" + flag + "'"
                     + " WHERE content_id = " + contentId + " AND case_id = " + caseId;
                 viewerJdbcTemplate.update(sql);
             } else {
-                sql = "INSERT INTO flag"
+                sql = "INSERT INTO " + viewerSchemaName + ".flag"
                     + " (content_id, flag, case_id)"
                     + " VALUES (" + contentId + ","
                     + " '" + body.getFlag() + "',"
@@ -114,7 +118,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                         continue;
                     }
                     // this is new one.
-                    sql = "INSERT INTO annotation"
+                    sql = "INSERT INTO " + viewerSchemaName + ".annotation"
                         + " (content_id, case_id, text)"
                         + " VALUES (" + contentId + ","
                         + " " + caseId + ","
@@ -125,9 +129,9 @@ public class CaseRecordApiController implements CaseRecordApi {
                     // update
                     if (annotation.getText() == null || annotation.getText().isEmpty()) {
                         // empty text with annotation id. Delete this.
-                        sql = "DELETE FROM annotation WHERE annotation_id = " + annotationId;
+                        sql = "DELETE FROM " + viewerSchemaName + ".annotation WHERE annotation_id = " + annotationId;
                     } else {
-                        sql = "UPDATE annotation SET text = '" + annotation.getText() + "'"
+                        sql = "UPDATE "+ viewerSchemaName +".annotation SET text = '" + annotation.getText() + "'"
                         + " WHERE annotation_id = " + annotationId;
                     }
 
@@ -142,7 +146,7 @@ public class CaseRecordApiController implements CaseRecordApi {
         List<ManualCaseData> manualCaseDatas = body.getManualCaseData();
         if (manualCaseDatas != null && caseId != null) {
             // Get patient id.
-            sql = "SELECT person_id AS PersonId FROM case_info WHERE case_info_id = " + caseId;
+            sql = "SELECT person_id AS PersonId FROM " + viewerSchemaName + ".case_info WHERE case_info_id = " + caseId;
             List<CaseInfo> caseInfos = registryJdbcTemplate.query(sql, new RegistryCaseInfoRowMapper());
             if (caseInfos.isEmpty()) {
                 return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
@@ -176,7 +180,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                     + " 36685765,"
                     + " '" + value + "',"
                     + " '" + value + "'"
-                    + " FROM observation";
+                    + " FROM " + dataSchemaName + ".observation";
                 registryJdbcTemplate.update(sql);
                 created = true;
             }
@@ -196,7 +200,9 @@ public class CaseRecordApiController implements CaseRecordApi {
     }
 
     private Integer getConceptCodeForSection(String section) {
-        List<Question> questions = viewerJdbcTemplate.query("SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM category c WHERE section='" + section + "'", new QuestionRowMapper());
+        String viewerSchemaName = Util.getDefaultViewerSchema();
+
+        List<Question> questions = viewerJdbcTemplate.query("SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM " + viewerSchemaName + ".category c WHERE section='" + section + "'", new QuestionRowMapper());
         if (questions.size()>0) {
             return questions.get(0).getConceptId();
         } else {
@@ -205,6 +211,8 @@ public class CaseRecordApiController implements CaseRecordApi {
     }
 
     private String createSearchSqlStatement (Integer caseId, String sectionsToSend) {
+        String dataSchemaName = Util.getDefaultDataSchema();
+
         String sqlSelectFrom = "SELECT"
             + " o.observation_date AS Date, "
             + " o.observation_id AS ObservationId, "
@@ -217,12 +225,12 @@ public class CaseRecordApiController implements CaseRecordApi {
             + " ot.concept_name AS ObservationTypeConceptName, "
             + " o.value_as_string AS DerivedValue, "
             + " o.observation_source_value AS SourceValue "
-            + " FROM"
-            + " observation o join person p on o.person_id = p.person_id"
-            + " join f_person fp on p.person_id = fp.person_id"
-            + " join case_info ci on p.person_id = ci.person_id"
-            + " left join concept oc on o.observation_concept_id = oc.concept_id"
-            + " left join concept ot on o.observation_type_concept_id = ot.concept_id"
+            + " FROM "
+            + dataSchemaName + ".observation o join " + dataSchemaName + ".person p on o.person_id = p.person_id"
+            + " join " + dataSchemaName + ".f_person fp on p.person_id = fp.person_id"
+            + " join " + dataSchemaName + ".case_info ci on p.person_id = ci.person_id"
+            + " left join " + dataSchemaName + ".concept oc on o.observation_concept_id = oc.concept_id"
+            + " left join " + dataSchemaName + ".concept ot on o.observation_type_concept_id = ot.concept_id"
             + " WHERE"
             + " ci.case_info_id = " + caseId;
         
@@ -243,6 +251,8 @@ public class CaseRecordApiController implements CaseRecordApi {
 
     void addDetails(Content content) {
         Integer observationId = content.getContentId();
+        String vocabSchemaName = Util.getDefaultVocabsSchema();
+        String dataSchemaName = Util.getDefaultDataSchema();
 
         String sql = "SELECT"
             + " f.domain_concept_id_1 AS domain_concept_id_1,"
@@ -250,8 +260,8 @@ public class CaseRecordApiController implements CaseRecordApi {
             + " f.domain_concept_id_2 AS domain_concept_id_2,"
             + " f.fact_id_2 AS fact_id_2,"
             + " f.relationship_concept_id AS relationship_concept_id"
-            + " FROM"
-            + " fact_relationship f join observation o on o.observation_id = f.fact_id_1"
+            + " FROM "
+            + dataSchemaName + ".fact_relationship f join " + dataSchemaName + ".observation o on o.observation_id = f.fact_id_1"
             + " WHERE"
             + " o.observation_id = " + observationId
             + " AND f.relationship_concept_id = " + 44818759L;
@@ -284,8 +294,8 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " cr.concept_code AS RouteCode,"
                         + " cr.concept_name AS RouteDisplay,"
                         + " d.lot_number AS LotNumber"
-                        + " FROM drug_exposure d join concept c on d.drug_concept_id = c.concept_id"
-                        + " left join concept cr on d.route_concept_id = cr.concept_id"
+                        + " FROM " + dataSchemaName + ".drug_exposure d join " + vocabSchemaName + ".concept c on d.drug_concept_id = c.concept_id"
+                        + " left join " + vocabSchemaName + ".concept cr on d.route_concept_id = cr.concept_id"
                         + " WHERE d.drug_exposure_id = " + entityId;
                 } else if (domainId == 19L) { // condition_occurrence
                     sql = "SELECT"
@@ -294,7 +304,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " c.vocabulary_id AS System,"
                         + " c.concept_code AS Code,"
                         + " c.concept_name AS Display"
-                        + " FROM condition_occurrence cd join concept c on cd.condition_concept_id = c.concept_id"
+                        + " FROM " + dataSchemaName + ".condition_occurrence cd join " + vocabSchemaName + ".concept c on cd.condition_concept_id = c.concept_id"
                         + " WHERE cd.condition_occurrence_id = " + entityId;
                 } else if (domainId == 27L) { // observation
                     sql = "SELECT"
@@ -308,9 +318,9 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " cv.concept_code AS ValueAsConceptCode,"
                         + " cv.concept_name AS ValueAsConceptDisplay,"
                         + " cu.concept_name AS Unit"
-                        + " FROM observation o join concept c on o.observation_concept_id = c.concept_id"
-                        + " left join concept cv on o.value_as_concept_id = cv.concept_id"
-                        + " left join concept cu on o.unit_concept_id = cu.concept_id"
+                        + " FROM " + dataSchemaName + ".observation o join " + vocabSchemaName + ".concept c on o.observation_concept_id = c.concept_id"
+                        + " left join " + vocabSchemaName + ".concept cv on o.value_as_concept_id = cv.concept_id"
+                        + " left join " + vocabSchemaName + ".concept cu on o.unit_concept_id = cu.concept_id"
                         + " WHERE o.observation_id = " + entityId;
                 } else if (domainId == 21L) { // measurement
                     sql = "SELECT"
@@ -327,10 +337,10 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " cu.concept_name AS Unit,"
                         + " m.range_low AS RangeLow,"
                         + " m.range_high AS RangeHigh"
-                        + " FROM measurement m join concept c on m.measurement_concept_id = c.concept_id"
-                        + " left join concept cv on m.value_as_concept_id = cv.concept_id"
-                        + " left join concept cu on m.unit_concept_id = cu.concept_id"
-                        + " left join concept co on m.operator_concept_id = co.concept_id"
+                        + " FROM " + dataSchemaName + ".measurement m join " + vocabSchemaName + ".concept c on m.measurement_concept_id = c.concept_id"
+                        + " left join " + vocabSchemaName + ".concept cv on m.value_as_concept_id = cv.concept_id"
+                        + " left join " + vocabSchemaName + ".concept cu on m.unit_concept_id = cu.concept_id"
+                        + " left join " + vocabSchemaName + ".concept co on m.operator_concept_id = co.concept_id"
                         + " WHERE m.measurement_id = " + entityId;
                 } else if (domainId == 5085L) { // note
                     sql = "SELECT"
@@ -339,7 +349,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " c.concept_code AS Code,"
                         + " c.concept_name AS Display,"
                         + " n.note_text AS Value"
-                        + " FROM note n join concept c on n.note_type_concept_id = c.concept_id"
+                        + " FROM " + dataSchemaName + ".note n join " + vocabSchemaName + ".concept c on n.note_type_concept_id = c.concept_id"
                         + " WHERE n.note_id = " + entityId;
                 } else {
                     log.error("Invalid Domain ConceptID2");
@@ -359,20 +369,21 @@ public class CaseRecordApiController implements CaseRecordApi {
     public ResponseEntity<CaseData> searchCategory(@NotNull @Parameter(in = ParameterIn.QUERY, description = "case-id for the category" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) String caseId,@Parameter(in = ParameterIn.QUERY, description = "sections to query for the case-id" ,schema=@Schema()) @Valid @RequestParam(value = "sections", required = false) String sections) {
         String accept = request.getHeader("Accept");
         Integer caseIdInteger = Integer.valueOf(caseId);
+        String viewerSchemaName = Util.getDefaultViewerSchema();
 
         if (accept != null && accept.contains("application/json")) {
             // Make map for viewer flag
-            String sql = "SELECT content_id, flag, case_id FROM flag WHERE case_id = " + caseId;
+            String sql = "SELECT content_id, flag, case_id FROM " + viewerSchemaName + ".flag WHERE case_id = " + caseId;
             ViewerFlagRowMapper viewerFlagRowMapper = new ViewerFlagRowMapper();
             viewerJdbcTemplate.query(sql, viewerFlagRowMapper);
             Map<Integer, ViewerFlag> userFlagMap = viewerFlagRowMapper.getResultMap();
 
-            sql = "SELECT annotation_id, content_id, case_id, user_id, text, created FROM annotation WHERE case_id = " + caseId;
+            sql = "SELECT annotation_id, content_id, case_id, user_id, text, created FROM " + viewerSchemaName + ".annotation WHERE case_id = " + caseId;
             ViewerAnnotationRowMapper viewerAnnotationRowMapper = new ViewerAnnotationRowMapper();
             viewerJdbcTemplate.query(sql, viewerAnnotationRowMapper);
             Map<Integer, List<ViewerAnnotation>> userAnnotationMap = viewerAnnotationRowMapper.getResultMap();
 
-            sql = "SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM category c";
+            sql = "SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM " + viewerSchemaName + ".category c";
             QuestionRowMapper questionRowMapper = new QuestionRowMapper();
             viewerJdbcTemplate.query(sql, questionRowMapper);
 

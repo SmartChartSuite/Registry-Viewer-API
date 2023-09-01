@@ -1,6 +1,7 @@
 package io.swagger.api;
 
 import io.swagger.dbo.QuestionRowMapper;
+import io.swagger.dbo.Util;
 import io.swagger.model.Question;
 import io.swagger.model.Questions;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,9 +60,11 @@ public class QuestionsApiController implements QuestionsApi {
 
     public ResponseEntity<Questions> getQuestions(@NotNull @Parameter(in = ParameterIn.QUERY, description = "section that we are interested." ,required=true,schema=@Schema()) @Valid @RequestParam(value = "section", required = true) String section) {
         String accept = request.getHeader("Accept");
+        String viewerSchemaName = Util.getDefaultViewerSchema();
+
         if (accept != null && accept.contains("application/json")) {
             Questions questions = new Questions();
-            questions.addAll(viewerJdbcTemplate.query("SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM category c WHERE section='" + section + "'", new QuestionRowMapper()));
+            questions.addAll(viewerJdbcTemplate.query("SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM " + viewerSchemaName + ".category c WHERE section='" + section + "'", new QuestionRowMapper()));
             
             return new ResponseEntity<Questions>(questions, HttpStatus.OK);
         }

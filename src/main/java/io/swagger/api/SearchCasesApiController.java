@@ -1,6 +1,7 @@
 package io.swagger.api;
 
 import io.swagger.dbo.CaseRowMapper;
+import io.swagger.dbo.Util;
 import io.swagger.model.Cases;
 import io.swagger.model.ModelCase;
 
@@ -44,6 +45,8 @@ public class SearchCasesApiController implements SearchCasesApi {
 
     private String CreateSearchSqlStatement (String terms, String fields) throws Exception {
         String retSql = "";
+        String dataSchemaName = Util.getDefaultDataSchema();
+        String vocabSchemaName = Util.getDefaultVocabsSchema();
         
         String sqlSelectFrom = "SELECT"
             + " ci.case_info_id AS CaseId,"
@@ -64,11 +67,11 @@ public class SearchCasesApiController implements SearchCasesApi {
             + " l.state AS State,"
             + " l.zip AS Zip,"
             + " ci.status AS Status"
-            + " FROM"
-            + " person p join f_person fp on p.person_id = fp.person_id"
-            + " join case_info ci on p.person_id = ci.person_id"
-            + " left join location l on p.location_id = l.location_id"
-            + " left join concept c on p.gender_concept_id = c.concept_id";
+            + " FROM "
+            + dataSchemaName + ".person p join " + dataSchemaName + ".f_person fp on p.person_id = fp.person_id"
+            + " join " + dataSchemaName + ".case_info ci on p.person_id = ci.person_id"
+            + " left join " + dataSchemaName + ".location l on p.location_id = l.location_id"
+            + " left join " + vocabSchemaName + ".concept c on p.gender_concept_id = c.concept_id";
 
         if (terms == null || terms.isEmpty()) {
             retSql = sqlSelectFrom;
