@@ -170,7 +170,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                 //     }
                 // }
 
-                sql = "INSERT INTO observation (observation_id, person_id,"
+                sql = "INSERT INTO " + dataSchemaName + ".observation (observation_id, person_id,"
                     + " observation_date, observation_concept_id,"
                     + " observation_type_concept_id, value_as_string, observation_source_value) SELECT"
                     + " coalesce(max(observation_id), 0)+1,"
@@ -212,6 +212,7 @@ public class CaseRecordApiController implements CaseRecordApi {
 
     private String createSearchSqlStatement (Integer caseId, String sectionsToSend) {
         String dataSchemaName = Util.getDefaultDataSchema();
+        String vocabSchemaName = Util.getDefaultVocabsSchema();
 
         String sqlSelectFrom = "SELECT"
             + " o.observation_date AS Date, "
@@ -229,8 +230,8 @@ public class CaseRecordApiController implements CaseRecordApi {
             + dataSchemaName + ".observation o join " + dataSchemaName + ".person p on o.person_id = p.person_id"
             + " join " + dataSchemaName + ".f_person fp on p.person_id = fp.person_id"
             + " join " + dataSchemaName + ".case_info ci on p.person_id = ci.person_id"
-            + " left join " + dataSchemaName + ".concept oc on o.observation_concept_id = oc.concept_id"
-            + " left join " + dataSchemaName + ".concept ot on o.observation_type_concept_id = ot.concept_id"
+            + " left join " + vocabSchemaName + ".concept oc on o.observation_concept_id = oc.concept_id"
+            + " left join " + vocabSchemaName + ".concept ot on o.observation_type_concept_id = ot.concept_id"
             + " WHERE"
             + " ci.case_info_id = " + caseId;
         

@@ -2,11 +2,14 @@ package io.swagger.model;
 
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import io.swagger.model.ModelCase;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
+import javax.validation.constraints.*;
 
 /**
  * Cases
@@ -15,15 +18,15 @@ import javax.validation.Valid;
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-06T18:56:45.410Z[GMT]")
 
 
-public class Cases   {
+public class Metadatas   {
   @JsonProperty("count")
   private Integer count = null;
 
-  @JsonProperty("cases")
+  @JsonProperty("metadatas")
   @Valid
-  private List<ModelCase> cases = null;
+  private List<Metadata> metadatas = null;
 
-  public Cases count(Integer count) {
+  public Metadatas count(Integer count) {
     this.count = count;
     return this;
   }
@@ -42,16 +45,16 @@ public class Cases   {
     this.count = count;
   }
 
-  public Cases cases(List<ModelCase> cases) {
-    this.cases = cases;
+  public Metadatas metadatas(List<Metadata> metadatas) {
+    this.metadatas = metadatas;
     return this;
   }
 
-  public Cases addCasesItem(ModelCase casesItem) {
-    if (this.cases == null) {
-      this.cases = new ArrayList<ModelCase>();
+  public Metadatas addMetadataItem(Metadata metadataItem) {
+    if (this.metadatas == null) {
+      this.metadatas = new ArrayList<Metadata>();
     }
-    this.cases.add(casesItem);
+    this.metadatas.add(metadataItem);
     return this;
   }
 
@@ -60,13 +63,13 @@ public class Cases   {
    * @return cases
    **/
   @Schema(description = "")
-      @Valid
-    public List<ModelCase> getCases() {
-    return cases;
+  @Valid
+  public List<Metadata> getMetadatas() {
+    return metadatas;
   }
 
-  public void setCases(List<ModelCase> cases) {
-    this.cases = cases;
+  public void setMetadatas(List<Metadata> metadatas) {
+    this.metadatas = metadatas;
   }
 
 
@@ -78,14 +81,14 @@ public class Cases   {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    Cases cases = (Cases) o;
+    Metadatas cases = (Metadatas) o;
     return Objects.equals(this.count, cases.count) &&
-        Objects.equals(this.cases, cases.cases);
+        Objects.equals(this.metadatas, cases.metadatas);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(count, cases);
+    return Objects.hash(count, metadatas);
   }
 
   @Override
@@ -94,7 +97,7 @@ public class Cases   {
     sb.append("class Cases {\n");
     
     sb.append("    count: ").append(toIndentedString(count)).append("\n");
-    sb.append("    cases: ").append(toIndentedString(cases)).append("\n");
+    sb.append("    metadatas: ").append(toIndentedString(metadatas)).append("\n");
     sb.append("}");
     return sb.toString();
   }

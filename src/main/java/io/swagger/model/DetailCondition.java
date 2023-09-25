@@ -45,7 +45,7 @@ public class DetailCondition  implements OneOfDetailsItems {
    **/
   @Schema(example = "2022-01-14T05:00:00.000Z", description = "")
   
-    public String getStartDate() {
+  public String getStartDate() {
     return startDate;
   }
 
