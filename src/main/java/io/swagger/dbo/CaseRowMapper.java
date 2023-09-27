@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import org.springframework.jdbc.core.RowMapper;
 
 import io.swagger.model.ModelCase;
+import io.swagger.model.Status;
 
 public class CaseRowMapper implements RowMapper<ModelCase> {
 
@@ -122,17 +123,30 @@ public class CaseRowMapper implements RowMapper<ModelCase> {
         modelCase.setZip(rs.getString("Zip")==null?"":rs.getString("Zip"));
 
         String caseStatus = rs.getString("Status");
-        String caseStatusDisplay = "";
+        Status caseStatusForUi = new Status();
+        Date caseLastUpdatedDate = rs.getDate("LastUpdatedDate");
+        if (caseLastUpdatedDate != null) {
+            String caseLastUpdatedDateString = dateFormat.format(caseLastUpdatedDate);
+            caseStatusForUi.setLastUpdated(caseLastUpdatedDateString);
+        }
+
         if (caseStatus != null && !caseStatus.isBlank()) {
             if (caseStatus.contains("ERROR") || caseStatus.contains("STOPPED")) {
-                caseStatusDisplay = "RETRIEVAL ERROR";
+                caseStatusForUi.setSeverity("fatal");
+                caseStatusForUi.setInformation("Contact developers for error on case ID = " + modelCase.getCaseId());
             } else if (caseStatus.contains("TIMED")) {
-                caseStatusDisplay = "RETRIEVAL TIMED OUT";
+                caseStatusForUi.setSeverity("error");
+                caseStatusForUi.setInformation("Query has timed out");
+            } else if ("ACTIVE".equals(caseStatus)) {
+                caseStatusForUi.setSeverity("active");
+            } else if ("INACTIVE".equals(caseStatus)) {
+                caseStatusForUi.setSeverity("inactive");
             } else {
-                caseStatusDisplay = caseStatus;
+                caseStatusForUi.setSeverity("information");
+                caseStatusForUi.setInformation("Case is in " + caseStatus + " status");
             }
         }
-        modelCase.setStatus(caseStatusDisplay);
+        modelCase.setStatus(caseStatusForUi);
 
         return modelCase;
     }

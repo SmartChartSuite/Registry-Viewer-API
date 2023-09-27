@@ -50,7 +50,7 @@ public class ModelCase   {
   private String zip = null;
 
   @JsonProperty("status")
-  private String status = null;
+  private Status status = null;
 
   public ModelCase caseId(Integer caseId) {
     this.caseId = caseId;
@@ -261,7 +261,7 @@ public class ModelCase   {
     this.zip = zip;
   }
 
-  public ModelCase status(String status) {
+  public ModelCase status(Status status) {
     this.status = status;
     return this;
   }
@@ -270,13 +270,13 @@ public class ModelCase   {
    * Get status
    * @return status
    **/
-  @Schema(example = "Active", description = "")
+  @Schema(example = "", description = "")
   
-    public String getStatus() {
+    public Status getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(Status status) {
     this.status = status;
   }
 
