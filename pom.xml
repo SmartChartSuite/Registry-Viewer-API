@@ -4,7 +4,7 @@
     <artifactId>registry-viewer-api</artifactId>
     <packaging>jar</packaging>
     <name>registry-viewer-api</name>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <properties>
         <java.version>17</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
