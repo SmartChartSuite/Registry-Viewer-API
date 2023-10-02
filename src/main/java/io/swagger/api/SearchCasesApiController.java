@@ -208,27 +208,27 @@ public class SearchCasesApiController implements SearchCasesApi {
         return retSql;
     }
     public ResponseEntity<Cases> searchCases(@Parameter(in = ParameterIn.QUERY, description = "search terms for cases" ,schema=@Schema()) @Valid @RequestParam(value = "terms", required = false) String terms,@Parameter(in = ParameterIn.QUERY, description = "search columns for cases" ,schema=@Schema()) @Valid @RequestParam(value = "fields", required = false) String fields) {
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            // Search database for terms. Terms are comma separated string values.
-            String sql = "";
-            try {
-                sql = CreateSearchSqlStatement (terms, fields);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return new ResponseEntity<Cases>(HttpStatus.BAD_REQUEST);
-            }
-            
-            log.debug("searchCases:Query: " + sql);
-            List<ModelCase> caseList = registryJdbcTemplate.query(sql, new CaseRowMapper());
-            Cases cases = new Cases();
-            cases.setCount(caseList.size());
-            cases.setCases(caseList);
-
-            return new ResponseEntity<Cases>(cases, HttpStatus.OK);
+        // String accept = request.getHeader("Accept");
+        // if (accept != null && accept.contains("application/json")) {
+        // Search database for terms. Terms are comma separated string values.
+        String sql = "";
+        try {
+            sql = CreateSearchSqlStatement (terms, fields);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<Cases>(HttpStatus.BAD_REQUEST);
         }
+        
+        log.debug("searchCases:Query: " + sql);
+        List<ModelCase> caseList = registryJdbcTemplate.query(sql, new CaseRowMapper());
+        Cases cases = new Cases();
+        cases.setCount(caseList.size());
+        cases.setCases(caseList);
 
-        return new ResponseEntity<Cases>(HttpStatus.OK);
+        return new ResponseEntity<Cases>(cases, HttpStatus.OK);
+        // }
+
+        // return new ResponseEntity<Cases>(HttpStatus.OK);
     }
 
 }

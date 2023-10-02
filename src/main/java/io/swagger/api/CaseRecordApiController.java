@@ -74,7 +74,7 @@ public class CaseRecordApiController implements CaseRecordApi {
     }
 
     public ResponseEntity<Void> addUserFlagAnnotationManualData(@NotNull @Parameter(in = ParameterIn.QUERY, description = "" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) Integer caseId,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "contentId", required = false) Integer contentId,@Parameter(in = ParameterIn.DEFAULT, description = "create or update flag, annotations, or user data", schema=@Schema()) @Valid @RequestBody UserFlagAnnotationManualData body) {    
-        String accept = request.getHeader("Accept");
+        // String accept = request.getHeader("Accept");
         String sql;
 
         // See if we have a flag information.
@@ -368,63 +368,63 @@ public class CaseRecordApiController implements CaseRecordApi {
     }
 
     public ResponseEntity<CaseData> searchCategory(@NotNull @Parameter(in = ParameterIn.QUERY, description = "case-id for the category" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) String caseId,@Parameter(in = ParameterIn.QUERY, description = "sections to query for the case-id" ,schema=@Schema()) @Valid @RequestParam(value = "sections", required = false) String sections) {
-        String accept = request.getHeader("Accept");
+        // String accept = request.getHeader("Accept");
         Integer caseIdInteger = Integer.valueOf(caseId);
         String viewerSchemaName = Util.getDefaultViewerSchema();
 
-        if (accept != null && accept.contains("application/json")) {
-            // Make map for viewer flag
-            String sql = "SELECT content_id, flag, case_id FROM " + viewerSchemaName + ".flag WHERE case_id = " + caseId;
-            ViewerFlagRowMapper viewerFlagRowMapper = new ViewerFlagRowMapper();
-            viewerJdbcTemplate.query(sql, viewerFlagRowMapper);
-            Map<Integer, ViewerFlag> userFlagMap = viewerFlagRowMapper.getResultMap();
+        // if (accept != null && accept.contains("application/json")) {
+        // Make map for viewer flag
+        String sql = "SELECT content_id, flag, case_id FROM " + viewerSchemaName + ".flag WHERE case_id = " + caseId;
+        ViewerFlagRowMapper viewerFlagRowMapper = new ViewerFlagRowMapper();
+        viewerJdbcTemplate.query(sql, viewerFlagRowMapper);
+        Map<Integer, ViewerFlag> userFlagMap = viewerFlagRowMapper.getResultMap();
 
-            sql = "SELECT annotation_id, content_id, case_id, user_id, text, created FROM " + viewerSchemaName + ".annotation WHERE case_id = " + caseId;
-            ViewerAnnotationRowMapper viewerAnnotationRowMapper = new ViewerAnnotationRowMapper();
-            viewerJdbcTemplate.query(sql, viewerAnnotationRowMapper);
-            Map<Integer, List<ViewerAnnotation>> userAnnotationMap = viewerAnnotationRowMapper.getResultMap();
+        sql = "SELECT annotation_id, content_id, case_id, user_id, text, created FROM " + viewerSchemaName + ".annotation WHERE case_id = " + caseId;
+        ViewerAnnotationRowMapper viewerAnnotationRowMapper = new ViewerAnnotationRowMapper();
+        viewerJdbcTemplate.query(sql, viewerAnnotationRowMapper);
+        Map<Integer, List<ViewerAnnotation>> userAnnotationMap = viewerAnnotationRowMapper.getResultMap();
 
-            sql = "SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM " + viewerSchemaName + ".category c";
-            QuestionRowMapper questionRowMapper = new QuestionRowMapper();
-            viewerJdbcTemplate.query(sql, questionRowMapper);
+        sql = "SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM " + viewerSchemaName + ".category c";
+        QuestionRowMapper questionRowMapper = new QuestionRowMapper();
+        viewerJdbcTemplate.query(sql, questionRowMapper);
 
-            CaseDataRowMapper caseDataRowMapper = new CaseDataRowMapper(questionRowMapper.getQuestionMap());
-            sql = createSearchSqlStatement(caseIdInteger, sections);
-            List<Content> registryData = registryJdbcTemplate.query(sql, caseDataRowMapper);
-            registryData.removeAll(Collections.singletonList(null));
-            
-            // Add details to each content
-            for (Content content : registryData) {
-                ViewerFlag viewerData = userFlagMap.get(content.getContentId());
-                List<ViewerAnnotation> viewerAnnotations = userAnnotationMap.get(content.getContentId());
-                if (viewerData != null) {
-                    String flag = viewerData.getFlag();
-                    if (flag != null && !flag.isEmpty() && !"null".equalsIgnoreCase(flag))
-                        content.setFlag(viewerData.getFlag());
-                }
-
-                if (viewerAnnotations != null) {
-                    for (ViewerAnnotation viewerAnnotation : viewerAnnotations) {
-                        Annotation annotation = new Annotation();
-                        annotation.setAnnotationId(viewerAnnotation.getAnnotationId());
-                        annotation.setText(viewerAnnotation.getText());
-                        annotation.setDate(viewerAnnotation.getDate());
-                        content.addAnnotationItem(annotation);
-                    }
-                }
-
-                addDetails(content);
+        CaseDataRowMapper caseDataRowMapper = new CaseDataRowMapper(questionRowMapper.getQuestionMap());
+        sql = createSearchSqlStatement(caseIdInteger, sections);
+        List<Content> registryData = registryJdbcTemplate.query(sql, caseDataRowMapper);
+        registryData.removeAll(Collections.singletonList(null));
+        
+        // Add details to each content
+        for (Content content : registryData) {
+            ViewerFlag viewerData = userFlagMap.get(content.getContentId());
+            List<ViewerAnnotation> viewerAnnotations = userAnnotationMap.get(content.getContentId());
+            if (viewerData != null) {
+                String flag = viewerData.getFlag();
+                if (flag != null && !flag.isEmpty() && !"null".equalsIgnoreCase(flag))
+                    content.setFlag(viewerData.getFlag());
             }
 
-            CaseData sectionsResponse = new CaseData();
-            sectionsResponse.setContents(registryData);
-            sectionsResponse.setCaseId(caseIdInteger);
-            sectionsResponse.setCount(registryData.size());
+            if (viewerAnnotations != null) {
+                for (ViewerAnnotation viewerAnnotation : viewerAnnotations) {
+                    Annotation annotation = new Annotation();
+                    annotation.setAnnotationId(viewerAnnotation.getAnnotationId());
+                    annotation.setText(viewerAnnotation.getText());
+                    annotation.setDate(viewerAnnotation.getDate());
+                    content.addAnnotationItem(annotation);
+                }
+            }
 
-            return new ResponseEntity<CaseData>(sectionsResponse, HttpStatus.OK);
+            addDetails(content);
         }
 
-        return new ResponseEntity<CaseData>(HttpStatus.NOT_IMPLEMENTED);
+        CaseData sectionsResponse = new CaseData();
+        sectionsResponse.setContents(registryData);
+        sectionsResponse.setCaseId(caseIdInteger);
+        sectionsResponse.setCount(registryData.size());
+
+        return new ResponseEntity<CaseData>(sectionsResponse, HttpStatus.OK);
+        // }
+
+        // return new ResponseEntity<CaseData>(HttpStatus.NOT_IMPLEMENTED);
     }
 
 }

@@ -41,23 +41,23 @@ public class MetadataApiController implements MetadataApi {
     }
 
     public ResponseEntity<Metadatas> getMetadata() {
-        String accept = request.getHeader("Accept");
+        // String accept = request.getHeader("Accept");
         String viewerSchemaName = Util.getDefaultViewerSchema();
 
-        if (accept != null && accept.contains("application/json")) {
-            Metadatas metadatas = new Metadatas();
-            List<Metadata> searchResult = viewerJdbcTemplate.query("SELECT m.metadata_id AS MetadataId, m.name AS Name, m.description AS Description, m.tag AS Tag, m.viewer_config AS ViewerConfig FROM " + viewerSchemaName + ".metadata m", new MetadataRowMapper());
-            if (searchResult != null && !searchResult.isEmpty()) {
-                metadatas.setCount(searchResult.size());
-                metadatas.setMetadatas(searchResult);
-            } else {
-                metadatas.setCount(0);
-            }
-
-            return new ResponseEntity<Metadatas>(metadatas, HttpStatus.OK);
+        // if (accept != null && accept.contains("application/json")) {
+        Metadatas metadatas = new Metadatas();
+        List<Metadata> searchResult = viewerJdbcTemplate.query("SELECT m.metadata_id AS MetadataId, m.name AS Name, m.description AS Description, m.tag AS Tag, m.viewer_config AS ViewerConfig FROM " + viewerSchemaName + ".metadata m", new MetadataRowMapper());
+        if (searchResult != null && !searchResult.isEmpty()) {
+            metadatas.setCount(searchResult.size());
+            metadatas.setMetadatas(searchResult);
+        } else {
+            metadatas.setCount(0);
         }
 
-        return new ResponseEntity<Metadatas>(HttpStatus.NOT_ACCEPTABLE);
+        return new ResponseEntity<Metadatas>(metadatas, HttpStatus.OK);
+        // }
+
+        // return new ResponseEntity<Metadatas>(HttpStatus.NOT_ACCEPTABLE);
     }
 
     @Override

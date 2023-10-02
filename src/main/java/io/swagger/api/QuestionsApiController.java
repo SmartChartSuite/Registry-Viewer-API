@@ -59,17 +59,17 @@ public class QuestionsApiController implements QuestionsApi {
     }
 
     public ResponseEntity<Questions> getQuestions(@NotNull @Parameter(in = ParameterIn.QUERY, description = "section that we are interested." ,required=true,schema=@Schema()) @Valid @RequestParam(value = "section", required = true) String section) {
-        String accept = request.getHeader("Accept");
+        // String accept = request.getHeader("Accept");
         String viewerSchemaName = Util.getDefaultViewerSchema();
 
-        if (accept != null && accept.contains("application/json")) {
-            Questions questions = new Questions();
-            questions.addAll(viewerJdbcTemplate.query("SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM " + viewerSchemaName + ".category c WHERE section='" + section + "'", new QuestionRowMapper()));
-            
-            return new ResponseEntity<Questions>(questions, HttpStatus.OK);
-        }
+        // if (accept != null && accept.contains("application/json")) {
+        Questions questions = new Questions();
+        questions.addAll(viewerJdbcTemplate.query("SELECT c.concept_id AS ConceptId, c.section AS Section, c.category AS Category, c.question AS Question FROM " + viewerSchemaName + ".category c WHERE section='" + section + "'", new QuestionRowMapper()));
+        
+        return new ResponseEntity<Questions>(questions, HttpStatus.OK);
+        // }
 
-        return new ResponseEntity<Questions>(HttpStatus.NOT_ACCEPTABLE);
+        // return new ResponseEntity<Questions>(HttpStatus.NOT_ACCEPTABLE);
     }
 
 }
