@@ -110,7 +110,7 @@ public class CaseRowMapper implements RowMapper<ModelCase> {
                 street = address2.trim();
             }
         } else {
-            if (first2 == null) {
+            if (address2 == null) {
                 street = address1.trim();
             } else {
                 street = address1.trim() + " " + address2.trim();
