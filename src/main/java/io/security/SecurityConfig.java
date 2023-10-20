@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${auth0.audience}")
+    @Value("${spring.security.oauth2.resourceserver.jwt.audiences}")
     private String audience;
 
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
@@ -40,9 +40,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable).authorizeRequests()
+                .mvcMatchers("/case-record").authenticated()
+                .mvcMatchers("/case-record").hasAnyAuthority("SCOPE_read:syphilis", "SCOPE_write:syphilis", "SCOPE_write:scd", "SCOPE_write:scd")
+                .mvcMatchers("/questions").authenticated()
+                .mvcMatchers("/questions").hasAnyAuthority("SCOPE_read:syphilis", "SCOPE_write:syphilis", "SCOPE_write:scd", "SCOPE_write:scd")
+                .mvcMatchers("/search-cases").authenticated()
+                .mvcMatchers("/search-cases").hasAnyAuthority("SCOPE_read:syphilis", "SCOPE_write:syphilis", "SCOPE_write:scd", "SCOPE_write:scd")
                 .mvcMatchers("/*").permitAll()
-                // .mvcMatchers("/api/private").authenticated()
-                // .mvcMatchers("/api/private-scoped").hasAuthority("SCOPE_read:messages")
                 .and().cors()
                 .and().oauth2ResourceServer().jwt();
         return http.build();
