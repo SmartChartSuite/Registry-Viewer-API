@@ -74,7 +74,7 @@ public class SecurityConfig {
             String path = "/case-record/" + registry;
             String scopeRead = "SCOPE_read:" + registry;
             String scopeWrite = "SCOPE_write:" + registry;
-            interceptUrlRegistry.mvcMatchers(path).authenticated()
+            interceptUrlRegistry
                 .mvcMatchers(HttpMethod.PUT, path).hasAnyAuthority(scopeWrite)
                 .mvcMatchers(HttpMethod.GET, path).hasAnyAuthority(scopeRead);
 
@@ -82,21 +82,22 @@ public class SecurityConfig {
 
             // for /questions API
             path = "/questions/" + registry;
-            interceptUrlRegistry.mvcMatchers(path).authenticated()
-                .mvcMatchers(path).hasAnyAuthority(scopeRead);
+            interceptUrlRegistry.mvcMatchers(path).hasAnyAuthority(scopeRead);
 
             log.debug("path: " + path + " with " + scopeRead + " and " + scopeWrite);
 
             // for /search-cases API
             path = "/search-cases/" + registry;
-            interceptUrlRegistry.mvcMatchers(path).authenticated()
-                .mvcMatchers(path).hasAnyAuthority(scopeRead);
+            interceptUrlRegistry.mvcMatchers(path).hasAnyAuthority(scopeRead);
 
             log.debug("path: " + path + " with " + scopeRead + " and " + scopeWrite);
 
         }
-
-        interceptUrlRegistry.mvcMatchers("/metadata").permitAll()
+        interceptUrlRegistry
+            .mvcMatchers(HttpMethod.POST, "/metadata").hasAnyAuthority("SCOPE_write:metadata")
+            .mvcMatchers(HttpMethod.PUT, "/metadata").hasAnyAuthority("SCOPE_write:metadata")
+            .mvcMatchers(HttpMethod.GET, "/metadata").permitAll()
+            .mvcMatchers(HttpMethod.GET, "/**").denyAll()
             .and().cors().and().oauth2ResourceServer().jwt();
 
         // http.csrf(AbstractHttpConfigurer::disable).authorizeRequests()
