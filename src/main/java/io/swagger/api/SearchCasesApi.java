@@ -42,10 +42,13 @@ public interface SearchCasesApi {
         @ApiResponse(responseCode = "200", description = "search results matching criteria", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Cases.class))),
         
         @ApiResponse(responseCode = "400", description = "bad input parameter") })
-    @RequestMapping(value = "/search-cases",
+    @RequestMapping(value = "/search-cases/{registry}",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Cases> searchCases(@Parameter(in = ParameterIn.QUERY, description = "search terms for cases" ,schema=@Schema()) @Valid @RequestParam(value = "terms", required = false) String terms, @Parameter(in = ParameterIn.QUERY, description = "search columns for cases" ,schema=@Schema()) @Valid @RequestParam(value = "fields", required = false) String fields);
+    ResponseEntity<Cases> searchCases(
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @Parameter(in = ParameterIn.QUERY, description = "search terms for cases" ,schema=@Schema()) @Valid @RequestParam(value = "terms", required = false) String terms, 
+        @Parameter(in = ParameterIn.QUERY, description = "search columns for cases" ,schema=@Schema()) @Valid @RequestParam(value = "fields", required = false) String fields);
 
 }
 

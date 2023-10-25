@@ -34,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -73,7 +74,12 @@ public class CaseRecordApiController implements CaseRecordApi {
         this.request = request;
     }
 
-    public ResponseEntity<Void> addUserFlagAnnotationManualData(@NotNull @Parameter(in = ParameterIn.QUERY, description = "" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) Integer caseId,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "contentId", required = false) Integer contentId,@Parameter(in = ParameterIn.DEFAULT, description = "create or update flag, annotations, or user data", schema=@Schema()) @Valid @RequestBody UserFlagAnnotationManualData body) {    
+    public ResponseEntity<Void> addUserFlagAnnotationManualData(
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @NotNull @Parameter(in = ParameterIn.QUERY, description = "" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) Integer caseId,
+        @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "contentId", required = false) Integer contentId,
+        @Parameter(in = ParameterIn.DEFAULT, description = "create or update flag, annotations, or user data", schema=@Schema()) @Valid @RequestBody UserFlagAnnotationManualData body) {
+        
         // String accept = request.getHeader("Accept");
         String sql;
 
@@ -210,8 +216,11 @@ public class CaseRecordApiController implements CaseRecordApi {
         }
     }
 
-    private String createSearchSqlStatement (Integer caseId, String sectionsToSend) {
-        String dataSchemaName = Util.getDefaultDataSchema();
+    private String createSearchSqlStatement (String dataSchemaName, Integer caseId, String sectionsToSend) {
+        if (dataSchemaName == null || dataSchemaName.isEmpty()) {
+            dataSchemaName = Util.getDefaultDataSchema();
+        }
+
         String vocabSchemaName = Util.getDefaultVocabsSchema();
 
         String sqlSelectFrom = "SELECT"
@@ -250,10 +259,12 @@ public class CaseRecordApiController implements CaseRecordApi {
         return sqlSelectFrom;
     }
 
-    void addDetails(Content content) {
+    void addDetails(String dataSchemaName, Content content) {
         Integer observationId = content.getContentId();
         String vocabSchemaName = Util.getDefaultVocabsSchema();
-        String dataSchemaName = Util.getDefaultDataSchema();
+        if (dataSchemaName == null || dataSchemaName.isEmpty()) {
+            dataSchemaName = Util.getDefaultDataSchema();
+        }
 
         String sql = "SELECT"
             + " f.domain_concept_id_1 AS domain_concept_id_1,"
@@ -367,7 +378,11 @@ public class CaseRecordApiController implements CaseRecordApi {
         content.setDetails(details);
     }
 
-    public ResponseEntity<CaseData> searchCategory(@NotNull @Parameter(in = ParameterIn.QUERY, description = "case-id for the category" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) String caseId,@Parameter(in = ParameterIn.QUERY, description = "sections to query for the case-id" ,schema=@Schema()) @Valid @RequestParam(value = "sections", required = false) String sections) {
+    public ResponseEntity<CaseData> searchCategory(
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @NotNull @Parameter(in = ParameterIn.QUERY, description = "case-id for the category" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) String caseId,
+        @Parameter(in = ParameterIn.QUERY, description = "sections to query for the case-id" ,schema=@Schema()) @Valid @RequestParam(value = "sections", required = false) String sections) {
+
         // String accept = request.getHeader("Accept");
         Integer caseIdInteger = Integer.valueOf(caseId);
         String viewerSchemaName = Util.getDefaultViewerSchema();
@@ -389,7 +404,7 @@ public class CaseRecordApiController implements CaseRecordApi {
         viewerJdbcTemplate.query(sql, questionRowMapper);
 
         CaseDataRowMapper caseDataRowMapper = new CaseDataRowMapper(questionRowMapper.getQuestionMap());
-        sql = createSearchSqlStatement(caseIdInteger, sections);
+        sql = createSearchSqlStatement(registyPath, caseIdInteger, sections);
         List<Content> registryData = registryJdbcTemplate.query(sql, caseDataRowMapper);
         registryData.removeAll(Collections.singletonList(null));
         
@@ -413,7 +428,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                 }
             }
 
-            addDetails(content);
+            addDetails(registyPath, content);
         }
 
         CaseData sectionsResponse = new CaseData();

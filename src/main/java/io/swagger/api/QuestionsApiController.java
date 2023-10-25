@@ -58,7 +58,9 @@ public class QuestionsApiController implements QuestionsApi {
         this.request = request;
     }
 
-    public ResponseEntity<Questions> getQuestions(@NotNull @Parameter(in = ParameterIn.QUERY, description = "section that we are interested." ,required=true,schema=@Schema()) @Valid @RequestParam(value = "section", required = true) String section) {
+    public ResponseEntity<Questions> getQuestions(
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @NotNull @Parameter(in = ParameterIn.QUERY, description = "section that we are interested." ,required=true,schema=@Schema()) @Valid @RequestParam(value = "section", required = true) String section) {
         // String accept = request.getHeader("Accept");
         String viewerSchemaName = Util.getDefaultViewerSchema();
 

@@ -42,10 +42,12 @@ public interface QuestionsApi {
         @ApiResponse(responseCode = "200", description = "list of questions", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Questions.class))),
         
         @ApiResponse(responseCode = "400", description = "bad input parameter") })
-    @RequestMapping(value = "/questions",
+    @RequestMapping(value = "/questions/{registry}",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Questions> getQuestions(@NotNull @Parameter(in = ParameterIn.QUERY, description = "section that we are interested." ,required=true,schema=@Schema()) @Valid @RequestParam(value = "section", required = true) String section);
+    ResponseEntity<Questions> getQuestions(
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @NotNull @Parameter(in = ParameterIn.QUERY, description = "section that we are interested." ,required=true,schema=@Schema()) @Valid @RequestParam(value = "section", required = true) String section);
 
 }
 

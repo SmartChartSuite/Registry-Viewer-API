@@ -18,9 +18,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -43,9 +45,11 @@ public class SearchCasesApiController implements SearchCasesApi {
         this.request = request;
     }
 
-    private String CreateSearchSqlStatement (String terms, String fields) throws Exception {
+    private String CreateSearchSqlStatement (String dataSchemaName, String terms, String fields) throws Exception {
         String retSql = "";
-        String dataSchemaName = Util.getDefaultDataSchema();
+        if (dataSchemaName == null || dataSchemaName.isEmpty()) {
+            dataSchemaName = Util.getDefaultDataSchema();
+        }
         String vocabSchemaName = Util.getDefaultVocabsSchema();
         
         String sqlSelectFrom = "SELECT"
@@ -207,13 +211,16 @@ public class SearchCasesApiController implements SearchCasesApi {
 
         return retSql;
     }
-    public ResponseEntity<Cases> searchCases(@Parameter(in = ParameterIn.QUERY, description = "search terms for cases" ,schema=@Schema()) @Valid @RequestParam(value = "terms", required = false) String terms,@Parameter(in = ParameterIn.QUERY, description = "search columns for cases" ,schema=@Schema()) @Valid @RequestParam(value = "fields", required = false) String fields) {
+    public ResponseEntity<Cases> searchCases(
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @Parameter(in = ParameterIn.QUERY, description = "search terms for cases" ,schema=@Schema()) @Valid @RequestParam(value = "terms", required = false) String terms,
+        @Parameter(in = ParameterIn.QUERY, description = "search columns for cases" ,schema=@Schema()) @Valid @RequestParam(value = "fields", required = false) String fields) {
         // String accept = request.getHeader("Accept");
         // if (accept != null && accept.contains("application/json")) {
         // Search database for terms. Terms are comma separated string values.
         String sql = "";
         try {
-            sql = CreateSearchSqlStatement (terms, fields);
+            sql = CreateSearchSqlStatement (registyPath, terms, fields);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<Cases>(HttpStatus.BAD_REQUEST);
