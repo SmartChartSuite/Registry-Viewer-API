@@ -1,2 +1,2 @@
-# SMART-PACER-Registry-Viewer-API
+# Registry-Viewer-API
 
