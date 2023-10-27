@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -34,6 +35,9 @@ public class MetadataApiController implements MetadataApi {
     @Qualifier("viewerJdbcTemplate")
     private JdbcTemplate viewerJdbcTemplate;
 
+    @Value("${server.version}")
+    private String version;
+
     @org.springframework.beans.factory.annotation.Autowired
     public MetadataApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
@@ -46,6 +50,7 @@ public class MetadataApiController implements MetadataApi {
 
         // if (accept != null && accept.contains("application/json")) {
         Metadatas metadatas = new Metadatas();
+        metadatas.setVersion(version);
         List<Metadata> searchResult = viewerJdbcTemplate.query("SELECT m.metadata_id AS MetadataId, m.name AS Name, m.description AS Description, m.tag AS Tag, m.viewer_config AS ViewerConfig FROM " + viewerSchemaName + ".metadata m", new MetadataRowMapper());
         if (searchResult != null && !searchResult.isEmpty()) {
             metadatas.setCount(searchResult.size());

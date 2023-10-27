@@ -19,6 +19,9 @@ import javax.validation.constraints.*;
 
 
 public class Metadatas   {
+  @JsonProperty("version")
+  private String version = null;
+
   @JsonProperty("count")
   private Integer count = null;
 
@@ -31,6 +34,20 @@ public class Metadatas   {
     return this;
   }
 
+  /**
+   * Get version
+   * @return version
+   **/
+  @Schema(example = "1.0.0", description = "")
+  
+    public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
+  }  
+  
   /**
    * Get count
    * @return count
