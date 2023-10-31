@@ -100,7 +100,7 @@ public class SecurityConfig {
             .mvcMatchers(HttpMethod.POST, "/metadata").hasAnyAuthority("SCOPE_write:metadata", "PERMISSION_write:metadata")
             .mvcMatchers(HttpMethod.PUT, "/metadata").hasAnyAuthority("SCOPE_write:metadata", "PERMISSION_write:metadata")
             .mvcMatchers(HttpMethod.GET, "/metadata").permitAll()
-            .mvcMatchers(HttpMethod.GET, "/**").permitAll()
+            .mvcMatchers(HttpMethod.GET, "/**").denyAll()
             .and().cors().and().oauth2ResourceServer().jwt();
 
         // http.csrf(AbstractHttpConfigurer::disable).authorizeRequests()
