@@ -1,6 +1,7 @@
 package io.swagger.api;
 
 import io.swagger.dbo.QuestionRowMapper;
+import io.swagger.configuration.RegistryConfig;
 import io.swagger.dbo.CaseDataRowMapper;
 import io.swagger.dbo.DetailsRowMapper;
 import io.swagger.dbo.FactRelationshipRowMapper;
@@ -12,7 +13,6 @@ import io.swagger.model.Annotation;
 import io.swagger.model.CaseData;
 import io.swagger.model.CaseInfo;
 import io.swagger.model.Content;
-import io.swagger.model.DetailObservation;
 import io.swagger.model.DetailUserData;
 import io.swagger.model.Details;
 import io.swagger.model.FactRelationship;
@@ -42,10 +42,7 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +54,6 @@ public class CaseRecordApiController implements CaseRecordApi {
     private static final long observation_concept_code_min = 2000000000L;
 
     private final ObjectMapper objectMapper;
-
     private final HttpServletRequest request;
 
     @Autowired
@@ -68,18 +64,25 @@ public class CaseRecordApiController implements CaseRecordApi {
     @Qualifier("viewerJdbcTemplate")
     private JdbcTemplate viewerJdbcTemplate;
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
+    private RegistryConfig registryConfig;
+    
+    @Autowired
     public CaseRecordApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
     }
 
     public ResponseEntity<Void> addUserFlagAnnotationManualData(
-        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registryPath,
         @NotNull @Parameter(in = ParameterIn.QUERY, description = "" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) Integer caseId,
         @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "contentId", required = false) Integer contentId,
         @Parameter(in = ParameterIn.DEFAULT, description = "create or update flag, annotations, or user data", schema=@Schema()) @Valid @RequestBody UserFlagAnnotationManualData body) {
         
+        if (!registryConfig.isValidRegistry(registryPath)) {
+            return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+        }
+
         // String accept = request.getHeader("Accept");
         String sql;
 
@@ -379,10 +382,14 @@ public class CaseRecordApiController implements CaseRecordApi {
     }
 
     public ResponseEntity<CaseData> searchCategory(
-        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registryPath,
         @NotNull @Parameter(in = ParameterIn.QUERY, description = "case-id for the category" ,required=true,schema=@Schema()) @Valid @RequestParam(value = "caseId", required = true) String caseId,
         @Parameter(in = ParameterIn.QUERY, description = "sections to query for the case-id" ,schema=@Schema()) @Valid @RequestParam(value = "sections", required = false) String sections) {
 
+        if (!registryConfig.isValidRegistry(registryPath)) {
+            return new ResponseEntity<CaseData>(HttpStatus.NOT_FOUND);
+        }
+            
         // String accept = request.getHeader("Accept");
         Integer caseIdInteger = Integer.valueOf(caseId);
         String viewerSchemaName = Util.getDefaultViewerSchema();
@@ -404,7 +411,7 @@ public class CaseRecordApiController implements CaseRecordApi {
         viewerJdbcTemplate.query(sql, questionRowMapper);
 
         CaseDataRowMapper caseDataRowMapper = new CaseDataRowMapper(questionRowMapper.getQuestionMap());
-        sql = createSearchSqlStatement(registyPath, caseIdInteger, sections);
+        sql = createSearchSqlStatement(registryPath, caseIdInteger, sections);
         List<Content> registryData = registryJdbcTemplate.query(sql, caseDataRowMapper);
         registryData.removeAll(Collections.singletonList(null));
         
@@ -428,7 +435,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                 }
             }
 
-            addDetails(registyPath, content);
+            addDetails(registryPath, content);
         }
 
         CaseData sectionsResponse = new CaseData();
@@ -437,9 +444,6 @@ public class CaseRecordApiController implements CaseRecordApi {
         sectionsResponse.setCount(registryData.size());
 
         return new ResponseEntity<CaseData>(sectionsResponse, HttpStatus.OK);
-        // }
-
-        // return new ResponseEntity<CaseData>(HttpStatus.NOT_IMPLEMENTED);
     }
 
 }

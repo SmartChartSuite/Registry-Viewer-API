@@ -1,11 +1,11 @@
 package io.swagger.api;
 
+import io.swagger.configuration.RegistryConfig;
 import io.swagger.dbo.CaseRowMapper;
 import io.swagger.dbo.Util;
 import io.swagger.model.Cases;
 import io.swagger.model.ModelCase;
 
-import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -39,12 +39,15 @@ public class SearchCasesApiController implements SearchCasesApi {
     @Qualifier("registryJdbcTemplate")
     private JdbcTemplate registryJdbcTemplate;
     
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     public SearchCasesApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
     }
 
+    @Autowired
+    private RegistryConfig registryConfig;
+    
     private String CreateSearchSqlStatement (String dataSchemaName, String terms, String fields) throws Exception {
         String retSql = "";
         if (dataSchemaName == null || dataSchemaName.isEmpty()) {
@@ -212,15 +215,20 @@ public class SearchCasesApiController implements SearchCasesApi {
         return retSql;
     }
     public ResponseEntity<Cases> searchCases(
-        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registyPath,
+        @NotNull @Parameter(in = ParameterIn.PATH, description = "Registry Path",required = true,schema = @Schema()) @Valid @PathVariable(value="registry", required = true) String registryPath,
         @Parameter(in = ParameterIn.QUERY, description = "search terms for cases" ,schema=@Schema()) @Valid @RequestParam(value = "terms", required = false) String terms,
         @Parameter(in = ParameterIn.QUERY, description = "search columns for cases" ,schema=@Schema()) @Valid @RequestParam(value = "fields", required = false) String fields) {
         // String accept = request.getHeader("Accept");
         // if (accept != null && accept.contains("application/json")) {
         // Search database for terms. Terms are comma separated string values.
+
+        if (!registryConfig.isValidRegistry(registryPath)) {
+            return new ResponseEntity<Cases>(HttpStatus.NOT_FOUND);
+        }
+
         String sql = "";
         try {
-            sql = CreateSearchSqlStatement (registyPath, terms, fields);
+            sql = CreateSearchSqlStatement (registryPath, terms, fields);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<Cases>(HttpStatus.BAD_REQUEST);
