@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,6 +25,9 @@ import io.swagger.v3.oas.models.info.License;
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-03-29T13:22:28.494Z[GMT]")
 @Configuration
 public class SwaggerDocumentationConfig {
+    @Value("${server.version}")
+    private String version;
+
     @Bean
     public Docket customImplementation(){
         return new Docket(DocumentationType.OAS_30)
@@ -62,7 +66,7 @@ public class SwaggerDocumentationConfig {
             .license("Apache 2.0")
             .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
             .termsOfServiceUrl("")
-            .version("1.6.1")
+            .version(version)
             .contact(new Contact("","", "myung.choi@gtri.gatech.edu"))
             .build();
     }
@@ -74,7 +78,7 @@ public class SwaggerDocumentationConfig {
                 .title("Registry Viewer API")
                 .description("API for registry viewer to obtain registry data")
                 .termsOfService("")
-                .version("1.0.0")
+                .version(version)
                 .license(new License()
                     .name("Apache 2.0")
                     .url("http://www.apache.org/licenses/LICENSE-2.0.html"))
