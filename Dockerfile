@@ -6,7 +6,7 @@ RUN mvn clean install
 
 FROM openjdk:17-jdk
 
-COPY --from=builder /usr/src/app/target/registry-viewer-api-1.5.1.jar registry-viewer-api.jar
+COPY --from=builder /usr/src/app/target/registry-viewer-api-0.3.3-hotfix-1.jar registry-viewer-api.jar
 EXPOSE 8080
 
 ENTRYPOINT ["java","-jar","/registry-viewer-api.jar"]

@@ -171,10 +171,11 @@ public class CaseRecordApiController implements CaseRecordApi {
                 // }
 
                 sql = "INSERT INTO " + dataSchemaName + ".observation (observation_id, person_id,"
-                    + " observation_date, observation_concept_id,"
+                    + " observation_date, observation_datetime, observation_concept_id,"
                     + " observation_type_concept_id, value_as_string, observation_source_value) SELECT"
                     + " coalesce(max(observation_id), 0)+1,"
                     + " " + personId + ","
+                    + " '" + dateString + "',"
                     + " '" + dateString + "',"
                     + " " + conceptId + ","
                     + " 36685765,"
@@ -215,7 +216,7 @@ public class CaseRecordApiController implements CaseRecordApi {
         String vocabSchemaName = Util.getDefaultVocabsSchema();
 
         String sqlSelectFrom = "SELECT"
-            + " o.observation_date AS Date, "
+            + " o.observation_datetime AS DateTime, "
             + " o.observation_id AS ObservationId, "
             + " o.observation_concept_id AS ObservationConceptId, "
             + " oc.vocabulary_id AS ObservationConceptSystem, "
@@ -282,8 +283,8 @@ public class CaseRecordApiController implements CaseRecordApi {
                 Integer entityId = factRelationship.getFactId2();
                 if (domainId == 13L) { // Drug_Exposure
                     sql = "SELECT"
-                        + " d.drug_exposure_start_date AS startDate,"
-                        + " d.drug_exposure_end_date AS endDate,"
+                        + " d.drug_exposure_start_datetime AS startDateTime,"
+                        + " d.drug_exposure_end_datetime AS endDateTime,"
                         + " c.vocabulary_id AS System,"
                         + " c.concept_code AS Code,"
                         + " c.concept_name AS Display,"
@@ -300,8 +301,8 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " WHERE d.drug_exposure_id = " + entityId;
                 } else if (domainId == 19L) { // condition_occurrence
                     sql = "SELECT"
-                        + " cd.condition_start_date AS startDate,"
-                        + " cd.condition_end_date AS endDate,"
+                        + " cd.condition_start_datetime AS startDateTime,"
+                        + " cd.condition_end_datetime AS endDateTime,"
                         + " c.vocabulary_id AS System,"
                         + " c.concept_code AS Code,"
                         + " c.concept_name AS Display"
@@ -309,7 +310,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " WHERE cd.condition_occurrence_id = " + entityId;
                 } else if (domainId == 27L) { // observation
                     sql = "SELECT"
-                        + " o.observation_date AS Date,"
+                        + " o.observation_datetime AS DateTime,"
                         + " c.vocabulary_id AS System,"
                         + " c.concept_code AS Code,"
                         + " c.concept_name AS Display,"
@@ -325,7 +326,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " WHERE o.observation_id = " + entityId;
                 } else if (domainId == 21L) { // measurement
                     sql = "SELECT"
-                        + " m.measurement_date AS Date,"
+                        + " m.measurement_datetime AS DateTime,"
                         + " c.vocabulary_id AS System,"
                         + " c.concept_code AS Code,"
                         + " c.concept_name AS Display,"
@@ -345,7 +346,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                         + " WHERE m.measurement_id = " + entityId;
                 } else if (domainId == 5085L) { // note
                     sql = "SELECT"
-                        + " n.note_date AS Date,"
+                        + " n.note_datetime AS DateTime,"
                         + " c.vocabulary_id AS System,"
                         + " c.concept_code AS Code,"
                         + " c.concept_name AS Display,"

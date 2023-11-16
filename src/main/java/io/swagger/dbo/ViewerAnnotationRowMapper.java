@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 
@@ -41,6 +42,8 @@ public class ViewerAnnotationRowMapper implements RowMapper<ViewerAnnotation> {
         Date createdDate = rs.getDate("created");
         if (createdDate != null) {
             DateFormat dateFormat = new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601);
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            
             String value = dateFormat.format(createdDate);
             viewerAnnotation.setDate(value);
         }
