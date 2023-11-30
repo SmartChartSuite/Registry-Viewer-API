@@ -1,23 +1,29 @@
 package io.swagger.dbo;
 
-
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
 
+import io.swagger.api.MetadataApiController;
 import io.swagger.model.Coding;
 import io.swagger.model.Content;
 import io.swagger.model.Question;
 import io.swagger.model.Value;
 
 public class CaseDataRowMapper implements RowMapper<Content> {
+    private static final Logger log = LoggerFactory.getLogger(CaseDataRowMapper.class);
+
     private Integer caseId;
     private Integer personId;
     private Map<Integer, Question> questionMap;
@@ -109,11 +115,11 @@ public class CaseDataRowMapper implements RowMapper<Content> {
         content.setContentId(rs.getInt("ObservationId"));
         content.setQuestion(rs.getString("ObservationConceptName"));
 
-        Date date = rs.getDate("Date");
+        Date date = rs.getDate("DateTime");
+        DateFormat dateFormat = new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         if (date != null) {
-            DateFormat dateFormat = new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601);
             String value = dateFormat.format(date);
-
             content.setDate(value);
         }
 
@@ -123,7 +129,13 @@ public class CaseDataRowMapper implements RowMapper<Content> {
         String[] derivedValues = obsValue.split("\\^");
         if (derivedValues.length > 3) {
             // first one is timestamp. Override the date in the observation.date.
-            content.setDate(derivedValues[0]);
+            try {
+                date = dateFormat.parse(derivedValues[0]);
+                content.setDate(dateFormat.format(date));
+            } catch (ParseException e) {
+                log.info("DerivedValue has incorrect datetime format. It should be " + StdDateFormat.DATE_FORMAT_STR_ISO8601 + ". Observation_datetime is used instead.");
+                e.printStackTrace();
+            }
         }
 
         Value value = constructValue(derivedValues);

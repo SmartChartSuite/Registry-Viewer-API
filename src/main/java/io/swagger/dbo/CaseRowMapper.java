@@ -1,11 +1,11 @@
 package io.swagger.dbo;
 
-
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 
@@ -23,7 +23,9 @@ public class CaseRowMapper implements RowMapper<ModelCase> {
         modelCase.setCaseId(rs.getInt("CaseId"));
 
         Date initialReportDate = rs.getDate("InitialRecordDate");
+
         DateFormat dateFormat = new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String initialReportDateString = dateFormat.format(initialReportDate);
         modelCase.setInitialReportDate(initialReportDateString);
         

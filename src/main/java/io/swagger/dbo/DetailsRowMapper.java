@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 
@@ -49,16 +50,17 @@ public class DetailsRowMapper implements RowMapper<OneOfDetailsItems> {
     public OneOfDetailsItems mapRow(ResultSet rs, int rowNum) throws SQLException {
         OneOfDetailsItems retVal = null;
         DateFormat dateFormat = new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         if ("drug_exposure".equals(entityType)) {
             DetailMedication detailMed = new DetailMedication();
-            Date startDate = rs.getDate("startDate");
+            Date startDate = rs.getDate("startDateTime");
             if (startDate != null) {
                 String value = dateFormat.format(startDate);
                 detailMed.setStartDate(value);
             }
 
-            Date endDate = rs.getDate("endDate");
+            Date endDate = rs.getDate("endDateTime");
             if (endDate != null) {
                 String value = dateFormat.format(endDate);
                 detailMed.setStartDate(value);
@@ -82,13 +84,13 @@ public class DetailsRowMapper implements RowMapper<OneOfDetailsItems> {
             retVal = detailMed;
         } else if ("condition_occurrence".equals(entityType)) {
             DetailCondition detailCondition = new DetailCondition();
-            Date startDate = rs.getDate("startDate");
+            Date startDate = rs.getDate("startDateTime");
             if (startDate != null) {
                 String value = dateFormat.format(startDate);
                 detailCondition.setStartDate(value);
             }
 
-            Date endDate = rs.getDate("endDate");
+            Date endDate = rs.getDate("endDateTime");
             if (endDate != null) {
                 String value = dateFormat.format(endDate);
                 detailCondition.setStartDate(value);
@@ -102,7 +104,7 @@ public class DetailsRowMapper implements RowMapper<OneOfDetailsItems> {
             retVal = detailCondition;
         } else if ("observation".equals(entityType)) {
             DetailObservation detailObservation = new DetailObservation();
-            Date date = rs.getDate("Date");
+            Date date = rs.getDate("DateTime");
             if (date != null) {
                 String value = dateFormat.format(date);
                 detailObservation.setDate(value);
@@ -142,7 +144,7 @@ public class DetailsRowMapper implements RowMapper<OneOfDetailsItems> {
             retVal = detailObservation;
         } else if ("measurement".equals(entityType)) {
             DetailMeasurement detailMeasurement = new DetailMeasurement();
-            Date date = rs.getDate("Date");
+            Date date = rs.getDate("DateTime");
             if (date != null) {
                 String value = dateFormat.format(date);
                 detailMeasurement.setDate(value);
@@ -188,7 +190,7 @@ public class DetailsRowMapper implements RowMapper<OneOfDetailsItems> {
             retVal = detailMeasurement;
         } else if ("note".equals(entityType)) {
             DetailNote detailNote = new DetailNote();
-            Date date = rs.getDate("Date");
+            Date date = rs.getDate("DateTime");
             if (date != null) {
                 String value = dateFormat.format(date);
                 detailNote.setDate(value);
