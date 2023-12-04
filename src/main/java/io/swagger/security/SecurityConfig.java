@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import io.swagger.dbo.MetadataRowMapper;
@@ -55,6 +56,16 @@ public class SecurityConfig {
         return jwtDecoder;
     }
 
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
+        CustomJwtGrantedAuthConverter converter = new CustomJwtGrantedAuthConverter();
+        // converter.setAuthoritiesClaimName("scope permissions");
+        converter.setAuthorityPrefix("SCOPE_");
+
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
+        return jwtConverter;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -74,36 +85,35 @@ public class SecurityConfig {
             String path = "/case-record/" + registry;
             String scopeRead = "SCOPE_read:" + registry;
             String scopeWrite = "SCOPE_write:" + registry;
-            String permissionRead = "PERMISSION_read:" + registry;
-            String permissionWrite = "PERMISSION_write:" + registry;
 
             interceptUrlRegistry
-                .mvcMatchers(HttpMethod.PUT, path).hasAnyAuthority(scopeWrite, permissionWrite)
-                .mvcMatchers(HttpMethod.GET, path).hasAnyAuthority(scopeRead, permissionRead);
+                .mvcMatchers(HttpMethod.PUT, path).hasAnyAuthority(scopeWrite)
+                .mvcMatchers(HttpMethod.GET, path).hasAnyAuthority(scopeRead);
 
-            log.debug("path: " + path + " with " + scopeRead + ", " + scopeWrite + ", " + permissionRead + ", " + permissionWrite);
+            log.debug("path: " + path + " with " + scopeRead + ", " + scopeWrite);
 
             // for /questions API
             path = "/questions/" + registry;
-            interceptUrlRegistry.mvcMatchers(path).hasAnyAuthority(scopeRead, permissionRead);
+            interceptUrlRegistry.mvcMatchers(path).hasAnyAuthority(scopeRead);
 
-            log.debug("path: " + path + " with " + scopeRead + ", " + scopeWrite + ", " + permissionRead + ", " + permissionWrite);
+            log.debug("path: " + path + " with " + scopeRead + ", " + scopeWrite);
 
             // for /search-cases API
             path = "/search-cases/" + registry;
-            interceptUrlRegistry.mvcMatchers(path).hasAnyAuthority(scopeRead, permissionRead);
+            interceptUrlRegistry.mvcMatchers(path).hasAnyAuthority(scopeRead);
 
-            log.debug("path: " + path + " with " + scopeRead + ", " + scopeWrite + ", " + permissionRead + ", " + permissionWrite);
+            log.debug("path: " + path + " with " + scopeRead + ", " + scopeWrite);
 
         }
         interceptUrlRegistry
-            .mvcMatchers(HttpMethod.POST, "/metadata").hasAnyAuthority("SCOPE_write:metadata", "PERMISSION_write:metadata")
-            .mvcMatchers(HttpMethod.PUT, "/metadata").hasAnyAuthority("SCOPE_write:metadata", "PERMISSION_write:metadata")
+            .mvcMatchers(HttpMethod.POST, "/metadata").hasAnyAuthority("SCOPE_write:metadata")
+            .mvcMatchers(HttpMethod.PUT, "/metadata").hasAnyAuthority("SCOPE_write:metadata")
             .mvcMatchers(HttpMethod.GET, "/metadata").permitAll()
             .mvcMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
             // .mvcMatchers(HttpMethod.GET, "/**").permitAll()
             // .mvcMatchers(HttpMethod.GET, "/**").denyAll()
-            .and().cors().and().oauth2ResourceServer().jwt();
+            .and().cors().and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthenticationConverter());
+            // .and().cors().and().oauth2ResourceServer().jwt();
 
         // http.csrf(AbstractHttpConfigurer::disable).authorizeRequests()
         //         .mvcMatchers("/case-record").authenticated()
