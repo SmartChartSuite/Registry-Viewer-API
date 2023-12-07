@@ -90,7 +90,7 @@ public class CaseRecordApiController implements CaseRecordApi {
         boolean created = false;
         boolean processed = false;
 
-        String dataSchemaName = Util.getDefaultDataSchema();
+        // String dataSchemaName = Util.getDefaultDataSchema();
         String viewerSchemaName = Util.getDefaultViewerSchema();
 
         String flag = body.getFlag();
@@ -179,7 +179,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                 //     }
                 // }
 
-                sql = "INSERT INTO " + dataSchemaName + ".observation (observation_id, person_id,"
+                sql = "INSERT INTO " + registryPath + ".observation (observation_id, person_id,"
                     + " observation_date, observation_datetime, observation_concept_id,"
                     + " observation_type_concept_id, value_as_string, observation_source_value) SELECT"
                     + " coalesce(max(observation_id), 0)+1,"
@@ -190,7 +190,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                     + " 36685765,"
                     + " '" + value + "',"
                     + " '" + value + "'"
-                    + " FROM " + dataSchemaName + ".observation";
+                    + " FROM " + registryPath + ".observation";
                 registryJdbcTemplate.update(sql);
                 created = true;
             }
@@ -220,9 +220,9 @@ public class CaseRecordApiController implements CaseRecordApi {
         }
     }
 
-    private String createSearchSqlStatement (String dataSchemaName, Integer caseId, String sectionsToSend) {
+    private String createSearchSqlStatement (String dataSchemaName, Integer caseId, String sectionsToSend) throws NotFoundException {
         if (dataSchemaName == null || dataSchemaName.isEmpty()) {
-            dataSchemaName = Util.getDefaultDataSchema();
+            throw new NotFoundException(500, "Data Schema Name cannot be null.");
         }
 
         String vocabSchemaName = Util.getDefaultVocabsSchema();
@@ -263,11 +263,11 @@ public class CaseRecordApiController implements CaseRecordApi {
         return sqlSelectFrom;
     }
 
-    void addDetails(String dataSchemaName, Content content) {
+    void addDetails(String dataSchemaName, Content content) throws NotFoundException {
         Integer observationId = content.getContentId();
         String vocabSchemaName = Util.getDefaultVocabsSchema();
         if (dataSchemaName == null || dataSchemaName.isEmpty()) {
-            dataSchemaName = Util.getDefaultDataSchema();
+            throw new NotFoundException(500, "Data Schema Name cannot be null.");
         }
 
         String sql = "SELECT"
@@ -412,7 +412,12 @@ public class CaseRecordApiController implements CaseRecordApi {
         viewerJdbcTemplate.query(sql, questionRowMapper);
 
         CaseDataRowMapper caseDataRowMapper = new CaseDataRowMapper(questionRowMapper.getQuestionMap());
-        sql = createSearchSqlStatement(registryPath, caseIdInteger, sections);
+        try {
+            sql = createSearchSqlStatement(registryPath, caseIdInteger, sections);
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+            return new ResponseEntity<CaseData>(HttpStatus.BAD_REQUEST);
+        }
         List<Content> registryData = registryJdbcTemplate.query(sql, caseDataRowMapper);
         registryData.removeAll(Collections.singletonList(null));
         
@@ -436,7 +441,12 @@ public class CaseRecordApiController implements CaseRecordApi {
                 }
             }
 
-            addDetails(registryPath, content);
+            try {
+                addDetails(registryPath, content);
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+                return new ResponseEntity<CaseData>(HttpStatus.BAD_REQUEST);
+            }
         }
 
         CaseData sectionsResponse = new CaseData();

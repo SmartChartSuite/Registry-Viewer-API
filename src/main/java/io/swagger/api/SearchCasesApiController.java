@@ -51,7 +51,7 @@ public class SearchCasesApiController implements SearchCasesApi {
     private String CreateSearchSqlStatement (String dataSchemaName, String terms, String fields) throws Exception {
         String retSql = "";
         if (dataSchemaName == null || dataSchemaName.isEmpty()) {
-            dataSchemaName = Util.getDefaultDataSchema();
+            throw new NotFoundException(500, "Data Schema Name cannot be null.");
         }
         String vocabSchemaName = Util.getDefaultVocabsSchema();
         
