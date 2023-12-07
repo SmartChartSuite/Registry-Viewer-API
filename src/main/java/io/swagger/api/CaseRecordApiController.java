@@ -155,7 +155,7 @@ public class CaseRecordApiController implements CaseRecordApi {
         List<ManualCaseData> manualCaseDatas = body.getManualCaseData();
         if (manualCaseDatas != null && caseId != null) {
             // Get patient id.
-            sql = "SELECT person_id AS PersonId FROM " + viewerSchemaName + ".case_info WHERE case_info_id = " + caseId;
+            sql = "SELECT person_id AS PersonId FROM " + registryPath + ".case_info WHERE case_info_id = " + caseId;
             List<CaseInfo> caseInfos = registryJdbcTemplate.query(sql, new RegistryCaseInfoRowMapper());
             if (caseInfos.isEmpty()) {
                 return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
