@@ -53,7 +53,7 @@ public class Annotation   {
    * Get text
    * @return text
    **/
-  @Schema(example = "will be delted if annotationId is valid but text is empty", description = "")
+  @Schema(example = "will be deleted if annotationId is valid but text is empty", description = "")
   
     public String getText() {
     return text;
@@ -72,7 +72,7 @@ public class Annotation   {
    * Get date
    * @return date
    **/
-  @Schema(example = "2012-12-12", description = "")
+  @Schema(example = "2024-01-04T05:00:00.000Z", description = "")
   
     public String getDate() {
     return date;

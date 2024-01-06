@@ -69,7 +69,7 @@ public class ManualCaseData   {
    * Get date
    * @return date
    **/
-  @Schema(example = "2022-03-31", description = "")
+  @Schema(example = "2024-01-04T05:00:00.000Z", description = "")
   
     public String getDate() {
     return date;

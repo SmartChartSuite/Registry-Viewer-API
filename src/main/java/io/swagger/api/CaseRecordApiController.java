@@ -42,7 +42,11 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -167,25 +171,17 @@ public class CaseRecordApiController implements CaseRecordApi {
                 String value = mannualCaseData.getValue();
                 String dateString = mannualCaseData.getDate();
                 
-
-                // Date date = new Date();
-                // if (dateString != null && !dateString.isEmpty()) {
-                //     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                //     try {
-                //         date = sdf.parse(dateString);
-                //     } catch (ParseException e) {
-                //         e.printStackTrace();
-                //         continue;
-                //     }
-                // }
+                TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(dateString);
+                Instant i = Instant.from(ta);
+                Date d = Date.from(i);
 
                 sql = "INSERT INTO " + registryPath + ".observation (observation_id, person_id,"
                     + " observation_date, observation_datetime, observation_concept_id,"
                     + " observation_type_concept_id, value_as_string, observation_source_value) SELECT"
                     + " coalesce(max(observation_id), 0)+1,"
                     + " " + personId + ","
-                    + " '" + dateString + "',"
-                    + " '" + dateString + "',"
+                    + " '" + d.toString() + "',"
+                    + " '" + d.toString() + "',"
                     + " " + conceptId + ","
                     + " 36685765,"
                     + " '" + value + "',"
