@@ -187,6 +187,9 @@ public class CaseRecordApiController implements CaseRecordApi {
                     + " '" + value + "',"
                     + " '" + value + "'"
                     + " FROM " + registryPath + ".observation";
+
+                log.debug("Manual Data SQL: " + sql);
+                
                 registryJdbcTemplate.update(sql);
                 created = true;
             }
