@@ -115,7 +115,7 @@ public class CaseDataRowMapper implements RowMapper<Content> {
         content.setContentId(rs.getInt("ObservationId"));
         content.setQuestion(rs.getString("ObservationConceptName"));
 
-        Date date = rs.getDate("DateTime");
+        Date date = rs.getTimestamp("DateTime");
         DateFormat dateFormat = new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         if (date != null) {

@@ -171,17 +171,17 @@ public class CaseRecordApiController implements CaseRecordApi {
                 String value = mannualCaseData.getValue();
                 String dateString = mannualCaseData.getDate();
                 
-                TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(dateString);
-                Instant i = Instant.from(ta);
-                Date d = Date.from(i);
+                // TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(dateString);
+                // Instant i = Instant.from(ta);
+                // Date d = Date.from(i);
 
                 sql = "INSERT INTO " + registryPath + ".observation (observation_id, person_id,"
                     + " observation_date, observation_datetime, observation_concept_id,"
                     + " observation_type_concept_id, value_as_string, observation_source_value) SELECT"
                     + " coalesce(max(observation_id), 0)+1,"
                     + " " + personId + ","
-                    + " '" + d.toString() + "',"
-                    + " '" + d.toString() + "',"
+                    + " '" + dateString + "',"
+                    + " '" + dateString + "',"
                     + " " + conceptId + ","
                     + " 36685765,"
                     + " '" + value + "',"
@@ -189,7 +189,7 @@ public class CaseRecordApiController implements CaseRecordApi {
                     + " FROM " + registryPath + ".observation";
 
                 log.debug("Manual Data SQL: " + sql);
-                
+
                 registryJdbcTemplate.update(sql);
                 created = true;
             }
