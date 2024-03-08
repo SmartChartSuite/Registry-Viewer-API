@@ -54,13 +54,13 @@ public class DetailsRowMapper implements RowMapper<OneOfDetailsItems> {
 
         if ("drug_exposure".equals(entityType)) {
             DetailMedication detailMed = new DetailMedication();
-            Date startDate = rs.getDate("startDateTime");
+            Date startDate = rs.getTimestamp("startDateTime");
             if (startDate != null) {
                 String value = dateFormat.format(startDate);
                 detailMed.setStartDate(value);
             }
 
-            Date endDate = rs.getDate("endDateTime");
+            Date endDate = rs.getTimestamp("endDateTime");
             if (endDate != null) {
                 String value = dateFormat.format(endDate);
                 detailMed.setStartDate(value);
@@ -84,13 +84,13 @@ public class DetailsRowMapper implements RowMapper<OneOfDetailsItems> {
             retVal = detailMed;
         } else if ("condition_occurrence".equals(entityType)) {
             DetailCondition detailCondition = new DetailCondition();
-            Date startDate = rs.getDate("startDateTime");
+            Date startDate = rs.getTimestamp("startDateTime");
             if (startDate != null) {
                 String value = dateFormat.format(startDate);
                 detailCondition.setStartDate(value);
             }
 
-            Date endDate = rs.getDate("endDateTime");
+            Date endDate = rs.getTimestamp("endDateTime");
             if (endDate != null) {
                 String value = dateFormat.format(endDate);
                 detailCondition.setStartDate(value);

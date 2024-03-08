@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import io.swagger.model.ModelCase;
 import io.swagger.model.Status;
+import io.swagger.util.QueryRequest;
 
 public class CaseRowMapper implements RowMapper<ModelCase> {
 
@@ -22,7 +23,7 @@ public class CaseRowMapper implements RowMapper<ModelCase> {
 
         modelCase.setCaseId(rs.getInt("CaseId"));
 
-        Date initialReportDate = rs.getDate("InitialRecordDate");
+        Date initialReportDate = rs.getTimestamp("CreatedDateTime");
 
         DateFormat dateFormat = new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -124,30 +125,46 @@ public class CaseRowMapper implements RowMapper<ModelCase> {
         modelCase.setState(rs.getString("State")==null?"":rs.getString("State"));
         modelCase.setZip(rs.getString("Zip")==null?"":rs.getString("Zip"));
 
-        String caseStatus = rs.getString("Status");
+        String queryRequestStatus = rs.getString("Status");
+        String uiCode = QueryRequest.uiCodeOf(queryRequestStatus);
+        String statusDetail = QueryRequest.uiDescOf(queryRequestStatus);
+
         Status caseStatusForUi = new Status();
-        Date caseLastUpdatedDate = rs.getDate("LastUpdatedDate");
-        if (caseLastUpdatedDate != null) {
-            String caseLastUpdatedDateString = dateFormat.format(caseLastUpdatedDate);
-            caseStatusForUi.setLastUpdated(caseLastUpdatedDateString);
+        caseStatusForUi.setCode(uiCode);
+        caseStatusForUi.setDetail(statusDetail);
+
+        Date activatedDate = rs.getTimestamp("ActivatedDateTime");
+        Date createdDate = rs.getTimestamp("CreatedDateTime");
+        Date nextScheduledDate = rs.getTimestamp("NextScheduledDateTime");
+        // Date lastUpdatedlDate = rs.getTimestamp("LastUpdatedlDateTime");
+        Date lastSuccessfulDate = rs.getTimestamp("LastSuccessfulDateTime");
+        Date caseStartedRunningDate = rs.getTimestamp("CaseStartedRunningDateTime");
+
+        if (activatedDate != null) {
+            String activatedDateString = dateFormat.format(activatedDate);
+            caseStatusForUi.setActivatedDateTime(activatedDateString);
         }
 
-        if (caseStatus != null && !caseStatus.isBlank()) {
-            if (caseStatus.contains("ERROR") || caseStatus.contains("STOPPED")) {
-                caseStatusForUi.setSeverity("fatal");
-                caseStatusForUi.setInformation("Contact developers for error on case ID = " + modelCase.getCaseId());
-            } else if (caseStatus.contains("TIMED")) {
-                caseStatusForUi.setSeverity("error");
-                caseStatusForUi.setInformation("Query has timed out");
-            } else if ("ACTIVE".equals(caseStatus)) {
-                caseStatusForUi.setSeverity("active");
-            } else if ("INACTIVE".equals(caseStatus)) {
-                caseStatusForUi.setSeverity("inactive");
-            } else {
-                caseStatusForUi.setSeverity("information");
-                caseStatusForUi.setInformation("Case is in " + caseStatus + " status");
-            }
+        if (createdDate != null) {
+            String createdDateString = dateFormat.format(createdDate);
+            caseStatusForUi.setCreatedDateTime(createdDateString);
         }
+
+        if (nextScheduledDate != null) {
+            String nextScheduledDateString = dateFormat.format(nextScheduledDate);
+            caseStatusForUi.setNextScheduledDateTime(nextScheduledDateString);
+        }
+
+        if (lastSuccessfulDate != null) {
+            String lastSuccessfulDateString = dateFormat.format(lastSuccessfulDate);
+            caseStatusForUi.setLastSuccessfulDateTime(lastSuccessfulDateString);
+        }
+
+        if (caseStartedRunningDate != null) {
+            String caseStartedRunningDateString = dateFormat.format(caseStartedRunningDate);
+            caseStatusForUi.setcaseStartedRunningDateTime(caseStartedRunningDateString);
+        }
+
         modelCase.setStatus(caseStatusForUi);
 
         return modelCase;

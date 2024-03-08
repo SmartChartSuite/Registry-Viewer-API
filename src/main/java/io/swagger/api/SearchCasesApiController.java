@@ -5,6 +5,7 @@ import io.swagger.dbo.CaseRowMapper;
 import io.swagger.dbo.Util;
 import io.swagger.model.Cases;
 import io.swagger.model.ModelCase;
+import io.swagger.util.QueryRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -57,8 +58,12 @@ public class SearchCasesApiController implements SearchCasesApi {
         
         String sqlSelectFrom = "SELECT"
             + " ci.case_info_id AS CaseId,"
-            + " ci.created_datetime AS InitialRecordDate,"
-            + " ci.last_updated_datetime AS LastUpdatedDate,"
+            + " ci.activated_datetime AS ActivatedDateTime,"
+            + " ci.created_datetime AS CreatedDateTime,"
+            + " ci.trigger_at_datetime AS NextScheduledDateTime,"
+            + " ci.last_updated_datetime AS LastUpdatedlDateTime,"
+            + " ci.last_successful_datetime AS LastSuccessfulDateTime,"
+            + " ci.case_started_running_datetime AS CaseStartedRunningDateTime,"
             + " fp.family_name AS LastName,"
             + " fp.given1_name AS FirstName1,"
             + " fp.given2_name AS FirstName2,"
@@ -174,10 +179,23 @@ public class SearchCasesApiController implements SearchCasesApi {
                     }
 
                     if (fields.contains("status")) {
-                        if (subWhere != null && !subWhere.isEmpty()) {
-                            subWhere += " AND ";
+                        String codes = QueryRequest.codesFromUiCode(value_);
+                        if (codes != null) {
+                            if (subWhere != null && !subWhere.isEmpty()) {
+                                subWhere += " AND ";
+                            }
+                            String[] codeList = codes.split(",");
+                            boolean begin = true;
+                            for (String c : codeList) {
+                                if (begin) {
+                                    subWhere += "(LOWER(ci.status) " + modifierString1 + c + modifierString2;
+                                    begin = false;
+                                } else {
+                                    subWhere += "OR LOWER(ci.status) " + modifierString1 + c + modifierString2;
+                                }
+                            }
+                            subWhere += ")";
                         }
-                        subWhere += "LOWER(ci.status) " + modifierString1 + value_ + modifierString2;
                     }
 
                     if (fields.contains("dob")) {
