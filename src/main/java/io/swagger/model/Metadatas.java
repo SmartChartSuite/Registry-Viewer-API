@@ -75,6 +75,20 @@ public class Metadatas   {
     return this;
   }
 
+  public Metadata findMetadataItem(String tag) {
+    if (this.metadatas == null) {
+      return null;
+    }
+
+    for (Metadata metadata : this.metadatas) {
+      if (tag.equalsIgnoreCase(metadata.getTag())) {
+        return metadata;
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Get cases
    * @return cases
