@@ -7,6 +7,7 @@ public enum QueryRequest {
     TIMED_OUT(0x0008, "TIMED_OUT", "Retry count reached the maximum allowed count. Giving up.", "paused", "Job taking longer than expected. This may indicate a temporary network error. If this error persists, please contact technical support. (0x0008)."), 
     ERROR_IN_CLIENT(0x0100, "ERROR_IN_CLIENT", "Error occurred on client side during Request. Request is paused.", "fatal", "Registry internal error occurred. Please contact technical support (0x0100)."), 
     ERROR_IN_SERVER(0x0200, "ERROR_IN_SERVER", "Error occurred on server side during Request. Request will be made again until it reaches the maximum retry-count.", "fatal", "Registry encountered an error in the backend services. Please contact technical support (0x0200)."), 
+    RESULT_PARSE_ERROR(0x0201, "RESULT_PARSE_ERROR", "Error occurred when parsing the server response data", "fatal", "Registry encountered an error with Data Received from provider. Please contact technical support (0x0201)."),
     ERROR_UNKNOWN(0x0400, "ERROR_UNKNOWN", "Unknown error occurred. Some resources in result bundle failed to be imported to db.", "error", "Error occurred during data import to registry. Please contact technical support (0x0400)"), 
     INVALID(0x0000, "INVALID", "Invalid Status. Retrigger with a valid status is required.", "warning", "not in use (0x0000)");
 
