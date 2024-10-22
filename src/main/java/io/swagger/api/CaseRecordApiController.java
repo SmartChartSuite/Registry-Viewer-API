@@ -6,6 +6,7 @@ import io.swagger.dbo.CaseDataRowMapper;
 import io.swagger.dbo.DetailsRowMapper;
 import io.swagger.dbo.FactRelationshipRowMapper;
 import io.swagger.dbo.RegistryCaseInfoRowMapper;
+import io.swagger.dbo.SCDAlgorithmRowMapper;
 import io.swagger.dbo.Util;
 import io.swagger.dbo.ViewerAnnotationRowMapper;
 import io.swagger.dbo.ViewerFlagRowMapper;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.ui.context.support.UiApplicationContextUtils;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -248,9 +250,9 @@ public class CaseRecordApiController implements CaseRecordApi {
             + " ci.case_info_id = " + caseId;
         
         if (sectionsToSend != null && !sectionsToSend.isEmpty()) {
-            String[] categories = sectionsToSend.split(",");
-            for (String category : categories) {
-                Integer concept_code = getConceptCodeForSection(category);
+            String[] sections = sectionsToSend.split(",");
+            for (String section : sections) {
+                Integer concept_code = getConceptCodeForSection(section);
                 if (concept_code > 0) {
                     sqlSelectFrom += " AND o.observation_concept_id = " + concept_code;
                 }
@@ -258,6 +260,29 @@ public class CaseRecordApiController implements CaseRecordApi {
         } else {
             sqlSelectFrom += " AND o.observation_concept_id > " + observation_concept_code_min;
         }
+
+        return sqlSelectFrom;
+    }
+
+    private String createSearchAlgoritmSqlStatement (String dataSchemaName, Integer caseId) throws NotFoundException {
+        if (dataSchemaName == null || dataSchemaName.isEmpty()) {
+            throw new NotFoundException(500, "Data Schema Name cannot be null.");
+        }
+
+        String vocabSchemaName = Util.getDefaultVocabsSchema();
+        String viewerSchemaName = Util.getDefaultViewerSchema();
+
+        String sqlSelectFrom = "SELECT " 
+            + "cat.section AS section, cat.category AS category, cat.question as question, " 
+            + "c.vocabulary_id as system, c.concept_code as code, c.concept_name as display, " 
+            + "MAX(m.measurement_datetime) as datetime "
+            + "FROM " 
+            + dataSchemaName + ".measurement m join " + viewerSchemaName + ".category cat on m.measurement_concept_id = cat.concept_id "
+            + "join " + vocabSchemaName + ".concept c on m.value_as_concept_id = c.concept_id "
+            + "join " + dataSchemaName + ".case_info ci on m.person_id = ci.person_id "
+            + "WHERE "
+            + "ci.case_info_id = " + caseId + " AND "
+            + "lower(cat.section) = 'header' GROUP BY cat.section, cat.category, cat.question, c.vocabulary_id, c.concept_code, c.concept_name";
 
         return sqlSelectFrom;
     }
@@ -446,6 +471,23 @@ public class CaseRecordApiController implements CaseRecordApi {
                 e.printStackTrace();
                 return new ResponseEntity<CaseData>(HttpStatus.BAD_REQUEST);
             }
+        }
+
+        // For SCD, we have algorithm measure data that we need to include in the contents. 
+        // Becuase this is in the measurement data, and we capture the latest meaasurement,
+        // we construct this separately and prepend this to the registryData.
+        if (Util.getDefaultScdSchema().equals(registryPath)) {
+            SCDAlgorithmRowMapper scdAlgorithmRowMapper = new SCDAlgorithmRowMapper();
+
+            try {
+                sql = createSearchAlgoritmSqlStatement(registryPath, caseIdInteger);
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+                return new ResponseEntity<CaseData>(HttpStatus.BAD_REQUEST);
+            }
+
+            List<Content> algorithmData = registryJdbcTemplate.query(sql, scdAlgorithmRowMapper);
+            registryData.addAll(0, algorithmData);
         }
 
         CaseData sectionsResponse = new CaseData();

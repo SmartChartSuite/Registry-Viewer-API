@@ -22,4 +22,13 @@ public class Util {
     public static String getDefaultViewerSchema() {
         return "viewer";
     }
+
+    public static String getDefaultScdSchema() {
+        String ret = System.getenv("JDBC_SCD_DATA_SCHEMA");
+        if (ret == null || ret.isBlank()) {
+            return "scd";
+        } else {
+            return ret;
+        }
+    }
 }
